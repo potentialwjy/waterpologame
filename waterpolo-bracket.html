@@ -572,7 +572,25 @@ function render() {
 function go(result) {
   const state = STATES[cur];
   history.push({ gid: state.id, lbl: state.round, r: result });
-  cur = result === 'W' ? state.winNext : state.loseNext;
+
+  let next = result === 'W' ? state.winNext : state.loseNext;
+
+  // After 3rd RR game: auto-determine 1st (3-0) or 4th (0-3), else go to standing picker
+  if (cur === 'rr2_2' || cur === 'rr3_2') {
+    const wins = history.slice(-3).filter(h => h.r === 'W').length;
+    const standState = cur === 'rr2_2' ? STATES.rr2_stand : STATES.rr3_stand;
+    const grp = standState.group;
+    if (wins === 3) {
+      history.push({ gid: 'GRP', lbl: `Group ${grp}: 1st place (3-0, auto)`, r: null });
+      next = 'f5th';
+    } else if (wins === 0) {
+      history.push({ gid: 'GRP', lbl: `Group ${grp}: 4th place (0-3, auto)`, r: null });
+      next = 'f11th';
+    }
+    // 2-1 or 1-2 → next stays as rr2_stand / rr3_stand for manual input
+  }
+
+  cur = next;
   render();
 }
 
@@ -601,17 +619,34 @@ function resetAll() {
 }
 
 function updateProgress() {
-  const total = 5, done = history.length;
+  // Count only real games (not GRP standing entries)
+  const gameHistory = history.filter(h => h.gid !== 'GRP');
+  const done = gameHistory.length;
+
+  // Determine total expected games based on path taken
+  const rrIds = new Set(['14G17','14G18','14G19','14G20','14G25','14G26','14G27','14G28','14G29','14G30','14G31','14G32']);
+  const onRrPath = gameHistory.some(h => rrIds.has(h.gid)) ||
+    ['rr2_0','rr2_1','rr2_2','rr2_stand','rr3_0','rr3_1','rr3_2','rr3_stand',
+     'cx_g37','cx_g38','f5th','f7th','f9th','f11th'].includes(cur);
+  const skip1CrossGame = ['f5th','f11th','r_5th','r_6th','r_11th','r_12th'].includes(cur) ||
+    gameHistory.some(h => h.gid === '14G39' || h.gid === '14G40');
+
+  const onShortPath = ['p1','f1st','p4','f13th','f15th',
+    'r_1st','r_2nd','r_3rd','r_4th','r_13th','r_14th','r_15th','r_16th'].includes(cur) ||
+    gameHistory.some(h => h.gid === STATES.p1?.id || h.gid === STATES.p4?.id);
+
+  let total = onRrPath ? (skip1CrossGame ? 6 : 7) : onShortPath ? 4 : 5;
+
   const bar = document.getElementById('prog-bar');
   let html = '';
   for (let i = 0; i < total; i++) {
     let cls = 'pd';
-    if (i < done) { cls += ' done'; if (history[i]?.r==='L') cls += ' loss'; }
-    else if (i === done) cls += ' cur';
+    if (i < done) { cls += ' done'; if (gameHistory[i]?.r === 'L') cls += ' loss'; }
+    else if (i === done && STATES[cur]?.type !== 'result') cls += ' cur';
     html += `<div class="${cls}"></div>`;
   }
-  const isFinal = STATES[cur]?.type === 'result';
-  html += `<span class="p-label">${isFinal ? '🏁 Done!' : 'Game '+(done+1)}</span>`;
+  const isDone = STATES[cur]?.type === 'result';
+  html += `<span class="p-label">${isDone ? '🏁 Done!' : `Game ${done + 1} of ${total}`}</span>`;
   bar.innerHTML = html;
 }
 
