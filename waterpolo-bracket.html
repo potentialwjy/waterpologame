@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>14U Girls · Tournament Path</title>
+<style>
+  :root {
+    --navy: #0f172a; --card: #1e293b; --border: #2d3f55;
+    --white: #f1f5f9; --muted: #64748b; --dim: #94a3b8;
+    --win: #22c55e; --lose: #ef4444; --accent: #3b82f6;
+    --purple: #a78bfa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--navy); color:var(--white); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif; min-height:100vh; padding:0 0 80px; }
+
+  /* ── Team Select Screen ─────────────────────────────── */
+  #select-screen { padding:32px 20px; }
+  .select-title { font-size:24px; font-weight:800; margin-bottom:4px; }
+  .select-sub { font-size:13px; color:var(--muted); margin-bottom:28px; }
+  .pool-group { margin-bottom:20px; }
+  .pool-label { font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; padding-left:2px; }
+  .team-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .team-btn {
+    padding:14px 12px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--card); color:var(--white); cursor:pointer;
+    text-align:left; transition:border-color .15s, background .15s;
+  }
+  .team-btn:active { background:#253348; }
+  .team-seed { font-size:10px; font-weight:700; letter-spacing:1px; color:var(--muted); text-transform:uppercase; }
+  .team-name { font-size:14px; font-weight:600; line-height:1.3; margin-top:2px; }
+
+  /* ── Header ─────────────────────────────────────────── */
+  .header { background:linear-gradient(135deg,#1e3a5f 0%,#0f172a 100%); padding:24px 20px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .h-team { font-size:20px; font-weight:700; letter-spacing:-0.3px; }
+  .h-badge { font-size:11px; font-weight:600; letter-spacing:1px; background:rgba(59,130,246,.2); color:var(--accent); border:1px solid rgba(59,130,246,.35); padding:3px 10px; border-radius:100px; }
+  .h-sub { font-size:12px; color:var(--muted); }
+  .progress-bar { display:flex; gap:6px; padding:12px 0 0; align-items:center; }
+  .pd { width:8px; height:8px; border-radius:50%; background:var(--border); flex-shrink:0; transition:background .3s; }
+  .pd.done { background:var(--win); }
+  .pd.loss { background:var(--lose) !important; }
+  .pd.cur  { background:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+  .p-label { font-size:11px; color:var(--muted); margin-left:4px; }
+
+  /* ── History ─────────────────────────────────────────── */
+  .history { padding:16px 20px 0; }
+  .hist-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; background:var(--card); border:1px solid var(--border); margin-bottom:8px; opacity:.7; }
+  .hist-item.w { border-left:3px solid var(--win); }
+  .hist-item.l { border-left:3px solid var(--lose); }
+  .hist-item.n { border-left:3px solid var(--purple); }
+  .hist-gid { font-size:11px; font-weight:700; color:var(--dim); min-width:38px; }
+  .hist-lbl { flex:1; font-size:12px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hist-res { font-size:11px; font-weight:700; padding:2px 8px; border-radius:100px; }
+  .hist-res.w { background:rgba(34,197,94,.15); color:var(--win); }
+  .hist-res.l { background:rgba(239,68,68,.15); color:var(--lose); }
+  .hist-res.n { background:rgba(167,139,250,.15); color:var(--purple); }
+
+  /* ── Game Card ───────────────────────────────────────── */
+  .cur-wrap { padding:16px 20px 0; }
+  .step-lbl { font-size:11px; font-weight:600; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
+  .game-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .gc-head { background:rgba(59,130,246,.08); padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .gc-id { font-size:13px; font-weight:700; color:var(--accent); }
+  .gc-round { font-size:12px; color:var(--dim); }
+  .gc-meta { padding:14px 18px; display:flex; flex-direction:column; gap:8px; }
+  .meta-row { display:flex; align-items:center; gap:10px; }
+  .meta-ic { font-size:14px; width:20px; text-align:center; flex-shrink:0; }
+  .meta-tx { font-size:13px; color:var(--dim); }
+  .meta-tx strong { color:var(--white); font-weight:600; }
+  .matchup { margin:4px 18px 14px; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .mu-row { display:flex; align-items:center; justify-content:space-between; padding:5px 0; }
+  .mu-row + .mu-row { border-top:1px solid var(--border); padding-top:8px; margin-top:3px; }
+  .cap-lbl { font-size:10px; font-weight:600; letter-spacing:1px; color:var(--muted); text-transform:uppercase; }
+  .cap-name { font-size:14px; font-weight:600; color:var(--white); display:flex; align-items:center; gap:6px; margin-top:1px; }
+  .us-tag { font-size:9px; font-weight:700; letter-spacing:.5px; background:rgba(59,130,246,.2); color:var(--accent); border:1px solid rgba(59,130,246,.35); padding:1px 6px; border-radius:100px; }
+  .cap-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(255,255,255,.2); }
+  .cap-w { background:#f1f5f9; }
+  .cap-d { background:#1e293b; border-color:#64748b; }
+  .btn-row { display:flex; gap:10px; padding:0 18px 18px; }
+  .btn-win, .btn-lose { flex:1; padding:16px 12px; border-radius:12px; border:none; font-size:16px; font-weight:700; cursor:pointer; transition:transform .12s; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .btn-win:active, .btn-lose:active { transform:scale(.96); }
+  .btn-win  { background:rgba(34,197,94,.15);  color:var(--win);  border:1.5px solid rgba(34,197,94,.35); }
+  .btn-lose { background:rgba(239,68,68,.15);  color:var(--lose); border:1.5px solid rgba(239,68,68,.35); }
+  .btn-sub  { font-size:10px; font-weight:500; opacity:.7; }
+
+  /* ── Group RR info box ───────────────────────────────── */
+  .rr-box { margin:0 18px 14px; background:rgba(167,139,250,.06); border:1px solid rgba(167,139,250,.2); border-radius:10px; padding:10px 14px; }
+  .rr-title { font-size:11px; font-weight:700; color:var(--purple); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .rr-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; }
+  .rr-row + .rr-row { border-top:1px solid rgba(167,139,250,.12); }
+  .rr-gid { font-size:12px; font-weight:700; color:var(--purple); min-width:38px; }
+  .rr-info { flex:1; }
+  .rr-time { font-size:12px; color:var(--white); font-weight:500; }
+  .rr-loc  { font-size:11px; color:var(--muted); }
+  .rr-vs   { font-size:11px; color:var(--dim); }
+
+  /* ── Standing Picker ─────────────────────────────────── */
+  .stand-wrap { padding:0 18px 18px; }
+  .stand-q { font-size:14px; font-weight:600; color:var(--white); margin-bottom:12px; }
+  .stand-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .btn-pl { padding:14px 8px; border-radius:10px; border:1.5px solid var(--border); background:var(--navy); color:var(--white); font-size:14px; font-weight:600; cursor:pointer; transition:transform .12s; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .btn-pl:active { transform:scale(.96); }
+  .pl-num { font-size:24px; font-weight:800; line-height:1; }
+  .pl-sub { font-size:10px; color:var(--muted); font-weight:500; }
+  .btn-pl.p1 { border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,.06); }
+  .btn-pl.p2 { border-color:var(--dim); color:var(--dim); }
+  .btn-pl.p3 { border-color:#92400e; color:#b45309; }
+  .btn-pl.p4 { border-color:var(--border); color:var(--muted); }
+
+  /* ── Final Card ──────────────────────────────────────── */
+  .final-card { background:var(--card); border-radius:16px; overflow:hidden; border:1px solid var(--border); }
+  .final-head { padding:16px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .final-trophy { font-size:32px; }
+  .final-place { font-size:22px; font-weight:800; }
+  .final-gid { font-size:12px; color:var(--dim); }
+  .final-meta { padding:14px 18px; display:flex; flex-direction:column; gap:8px; }
+
+  /* ── Result Screen ───────────────────────────────────── */
+  .result-card { margin:0; background:var(--card); border-radius:20px; border:1px solid var(--border); overflow:hidden; text-align:center; }
+  .result-banner { padding:40px 20px 28px; }
+  .result-trophy { font-size:64px; line-height:1; margin-bottom:12px; }
+  .result-place  { font-size:36px; font-weight:900; letter-spacing:-1px; }
+  .result-team   { font-size:16px; color:var(--dim); margin-top:4px; }
+  .result-divider { height:1px; background:var(--border); margin:0 20px; }
+  .result-game   { padding:16px 20px; display:flex; flex-direction:column; gap:8px; }
+  .confetti { animation: pop .4s ease-out; }
+  @keyframes pop { 0%{transform:scale(.7);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+
+  /* ── Reset ───────────────────────────────────────────── */
+  .connector { display:flex; justify-content:center; padding:4px 0; }
+  .conn-line { width:2px; height:16px; background:linear-gradient(to bottom,var(--border),transparent); }
+  .reset-btn { margin:20px 20px 0; width:calc(100% - 40px); padding:14px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:14px; font-weight:500; cursor:pointer; }
+  .reset-btn:active { background:var(--card); }
+</style>
+</head>
+<body>
+
+<!-- ── Team Selection ── -->
+<div id="select-screen">
+  <div class="select-title">14U Girls</div>
+  <div class="select-sub">2026 Pacific Zone JO Quals · Select your team</div>
+  <div id="pool-list"></div>
+</div>
+
+<!-- ── Game Tracker ── -->
+<div id="tracker-screen" style="display:none">
+  <div class="header">
+    <div class="header-top">
+      <div class="h-team" id="h-team"></div>
+      <div class="h-badge">14U GIRLS</div>
+    </div>
+    <div class="h-sub" id="h-sub"></div>
+    <div class="progress-bar" id="prog-bar"></div>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+// ─── Data ──────────────────────────────────────────────────────────
+const TEAMS = {
+  A1:{name:"Diablo Alliance A",pool:"A",seed:1}, A2:{name:"Stanford B",pool:"A",seed:2},
+  A3:{name:"SHAQ",pool:"A",seed:3},              A4:{name:"Stanford C",pool:"A",seed:4},
+  B1:{name:"Stanford A",pool:"B",seed:1},         B2:{name:"SJ Express Blue",pool:"B",seed:2},
+  B3:{name:"Lamorinda B",pool:"B",seed:3},        B4:{name:"Alameda",pool:"B",seed:4},
+  C1:{name:"Lamorinda A",pool:"C",seed:1},        C2:{name:"CC United",pool:"C",seed:2},
+  C3:{name:"680 Blue",pool:"C",seed:3},           C4:{name:"SJ Express Gold",pool:"C",seed:4},
+  D1:{name:"Santa Cruz",pool:"D",seed:1},         D2:{name:"680 Red",pool:"D",seed:2},
+  D3:{name:"Sharks",pool:"D",seed:3},             D4:{name:"Norcal",pool:"D",seed:4},
+};
+
+const POOL_PLAY = {
+  A:{high:["A1","A4"],low:["A2","A3"],highGame:"14G01",lowGame:"14G02",highTime:"4:00 PM",lowTime:"4:50 PM",loc:"MIWOK DIVE"},
+  B:{high:["B1","B4"],low:["B2","B3"],highGame:"14G03",lowGame:"14G04",highTime:"5:40 PM",lowTime:"6:30 PM",loc:"MIWOK DIVE"},
+  C:{high:["C1","C4"],low:["C2","C3"],highGame:"14G07",lowGame:"14G08",highTime:"5:40 PM",lowTime:"6:30 PM",loc:"NOVATO HS"},
+  D:{high:["D1","D4"],low:["D2","D3"],highGame:"14G05",lowGame:"14G06",highTime:"7:20 PM",lowTime:"4:50 PM",loc:"NOVATO HS"},
+};
+const POOL_FINALS = {
+  A:{wGame:"14G11",wTime:"8:50 AM", wLbl:"1st/2nd A",lGame:"14G09",lTime:"8:00 AM", lLbl:"3rd/4th A",loc:"NOVATO HS"},
+  B:{wGame:"14G15",wTime:"10:30 AM",wLbl:"1st/2nd B",lGame:"14G13",lTime:"9:40 AM", lLbl:"3rd/4th B",loc:"NOVATO HS"},
+  C:{wGame:"14G16",wTime:"1:50 PM", wLbl:"1st/2nd C",lGame:"14G14",lTime:"1:00 PM", lLbl:"3rd/4th C",loc:"NOVATO HS"},
+  D:{wGame:"14G12",wTime:"12:10 PM",wLbl:"1st/2nd D",lGame:"14G10",lTime:"11:20 AM",lLbl:"3rd/4th D",loc:"NOVATO HS"},
+};
+const SEMI_14 = {
+  A:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Pool D"},
+  B:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Pool C"},
+  C:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Pool B"},
+  D:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Pool A"},
+};
+const SEMI_1316 = {
+  A:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Pool D"},
+  B:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Pool C"},
+  C:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Pool B"},
+  D:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Pool A"},
+};
+// Group assignment: pool → {2: groupPos, 3: groupPos}
+const GROUP_OF = {
+  A:{2:"G2",3:"H3"}, B:{2:"H2",3:"G3"}, C:{2:"H1",3:"G4"}, D:{2:"G1",3:"H4"}
+};
+// Round-robin schedule per group position. isUsW = is this team WHITE cap?
+const RR = {
+  G1:[{g:"14G18",vs:"G4 · 3rd Pool C",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G25",vs:"G3 · 3rd Pool B",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G29",vs:"G2 · 2nd Pool A",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:true}],
+  G2:[{g:"14G17",vs:"G3 · 3rd Pool B",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G27",vs:"G4 · 3rd Pool C",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G29",vs:"G1 · 2nd Pool D",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:false}],
+  G3:[{g:"14G17",vs:"G2 · 2nd Pool A",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G25",vs:"G1 · 2nd Pool D",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G31",vs:"G4 · 3rd Pool C",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:true}],
+  G4:[{g:"14G18",vs:"G1 · 2nd Pool D",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G27",vs:"G2 · 2nd Pool A",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G31",vs:"G3 · 3rd Pool B",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:false}],
+  H1:[{g:"14G20",vs:"H4 · 3rd Pool D",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G26",vs:"H3 · 3rd Pool A",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G30",vs:"H2 · 2nd Pool B",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:true}],
+  H2:[{g:"14G19",vs:"H3 · 3rd Pool A",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G28",vs:"H4 · 3rd Pool D",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G30",vs:"H1 · 2nd Pool C",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:false}],
+  H3:[{g:"14G19",vs:"H2 · 2nd Pool B",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G26",vs:"H1 · 2nd Pool C",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G32",vs:"H4 · 3rd Pool D",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:true}],
+  H4:[{g:"14G20",vs:"H1 · 2nd Pool C",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G28",vs:"H2 · 2nd Pool B",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G32",vs:"H3 · 3rd Pool A",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:false}],
+};
+
+// ─── State Machine Builder ──────────────────────────────────────────
+function buildStates(tid) {
+  const tm = TEAMS[tid], pool = tm.pool, seed = tm.seed;
+  const pp = POOL_PLAY[pool];
+  const isHigh = seed===1||seed===4;
+  const grp = isHigh ? pp.high : pp.low;
+  const opp1 = TEAMS[grp.find(x=>x!==tid)];
+  const pf = POOL_FINALS[pool];
+  const s14 = SEMI_14[pool];
+  const s1316 = SEMI_1316[pool];
+  const gp2 = GROUP_OF[pool][2], gp3 = GROUP_OF[pool][3];
+  const rr2 = RR[gp2], rr3 = RR[gp3];
+  const g2L = gp2[0], g3L = gp3[0]; // "G" or "H"
+
+  // For 1-4 semi: A/D → game14G23 (A=WHITE, D=DARK), B/C → 14G24 (B=WHITE, C=DARK)
+  const semi14w = (pool==='A'||pool==='B');
+  // For 13-16 semi: A/B → WHITE, C/D depend on game
+  const semi1316w = (pool==='A'||pool==='B');
+  // Pool final cap: high-game team = WHITE, low-game team = DARK
+  const pfW = isHigh;
+
+  const rr2AllGames = rr2.map(g=>({g:g.g,vs:g.vs,date:g.date,t:g.t,loc:g.loc}));
+  const rr3AllGames = rr3.map(g=>({g:g.g,vs:g.vs,date:g.date,t:g.t,loc:g.loc}));
+
+  // cross game for 2nd/3rd in group
+  // G group: 2nd→14G38 WHITE, 3rd→14G37 DARK
+  // H group: 2nd→14G37 WHITE, 3rd→14G38 DARK
+  const cx = {
+    G: { "1st":"14G39","2nd":"14G38","3rd":"14G37","4th":"14G40",
+         "2ndW":true,"3rdW":false, "2ndLoc":"NOVATO HS","3rdLoc":"MARIN ACADEMY",
+         "2ndTime":"12:10 PM","3rdTime":"12:10 PM" },
+    H: { "1st":"14G39","2nd":"14G37","3rd":"14G38","4th":"14G40",
+         "2ndW":true,"3rdW":false, "2ndLoc":"MARIN ACADEMY","3rdLoc":"NOVATO HS",
+         "2ndTime":"12:10 PM","3rdTime":"12:10 PM" },
+  };
+
+  return {
+    // ── Game 1 ───────────────────────────────────────────────────────
+    g1: {
+      type:'game', id: isHigh?pp.highGame:pp.lowGame,
+      date:'Fri Jun 5', time: isHigh?pp.highTime:pp.lowTime, loc:pp.loc,
+      round:`Pool Play · Pool ${pool} · Seeds ${isHigh?'1v4':'2v3'}`,
+      isUsW: seed===1||seed===2,
+      usName:`${tid} · ${tm.name}`, oppName:`${opp1.id||grp.find(x=>x!==tid)} · ${opp1.name}`,
+      winNext:'g2w', loseNext:'g2l',
+      winLbl:`→ Play for 1st/2nd in Pool ${pool}`,
+      loseLbl:`→ Play for 3rd/4th in Pool ${pool}`,
+    },
+    // ── Pool Winner Final ────────────────────────────────────────────
+    g2w: {
+      type:'game', id:pf.wGame, date:'Sat Jun 6', time:pf.wTime, loc:pf.loc,
+      round:`${pf.wLbl} · Pool ${pool}`,
+      isUsW: pfW,
+      usName:tm.name, oppName:`${isHigh?'Winner of 2v3':'Winner of 1v4'} · Pool ${pool}`,
+      winNext:'p1', loseNext:'rr2_0',
+      winLbl:`→ 1st in Pool · 1-4 Championship`,
+      loseLbl:`→ 2nd in Pool · ${g2L}-Group 5-12 Bracket`,
+    },
+    // ── Pool Loser Final ─────────────────────────────────────────────
+    g2l: {
+      type:'game', id:pf.lGame, date:'Sat Jun 6', time:pf.lTime, loc:pf.loc,
+      round:`${pf.lLbl} · Pool ${pool}`,
+      isUsW: pfW,
+      usName:tm.name, oppName:`${isHigh?'Loser of 2v3':'Loser of 1v4'} · Pool ${pool}`,
+      winNext:'rr3_0', loseNext:'p4',
+      winLbl:`→ 3rd in Pool · ${g3L}-Group 5-12 Bracket`,
+      loseLbl:`→ 4th in Pool · 13-16 Bracket`,
+    },
+    // ── 1-4 Semi ────────────────────────────────────────────────────
+    p1: {
+      type:'game', id:s14.game, date:'Sat Jun 6', time:s14.time, loc:s14.loc,
+      round:`1-4 Semifinal`,
+      isUsW: semi14w,
+      usName:`${tm.name} (1st Pool ${pool})`, oppName:`${s14.opp}`,
+      winNext:'f1st', loseNext:'f3rd',
+      winLbl:'→ 1st Place Final', loseLbl:'→ 3rd Place Game',
+    },
+    // ── 5-12 RR for 2nd in pool ──────────────────────────────────────
+    rr2_0: {
+      type:'rr_game', idx:0, rrKey:gp2, allGames:rr2AllGames,
+      id:rr2[0].g, date:rr2[0].date, time:rr2[0].t, loc:rr2[0].loc,
+      round:`${g2L}-Group 5-12 · Game 1 of 3`,
+      isUsW:rr2[0].w, usName:tm.name, oppName:rr2[0].vs,
+      winNext:'rr2_1', loseNext:'rr2_1',
+      winLbl:'Record → next group game', loseLbl:'Record → next group game',
+    },
+    rr2_1: {
+      type:'rr_game', idx:1, rrKey:gp2, allGames:rr2AllGames,
+      id:rr2[1].g, date:rr2[1].date, time:rr2[1].t, loc:rr2[1].loc,
+      round:`${g2L}-Group 5-12 · Game 2 of 3`,
+      isUsW:rr2[1].w, usName:tm.name, oppName:rr2[1].vs,
+      winNext:'rr2_2', loseNext:'rr2_2',
+      winLbl:'Record → next group game', loseLbl:'Record → next group game',
+    },
+    rr2_2: {
+      type:'rr_game', idx:2, rrKey:gp2, allGames:rr2AllGames,
+      id:rr2[2].g, date:rr2[2].date, time:rr2[2].t, loc:rr2[2].loc,
+      round:`${g2L}-Group 5-12 · Game 3 of 3`,
+      isUsW:rr2[2].w, usName:tm.name, oppName:rr2[2].vs,
+      winNext:'rr2_stand', loseNext:'rr2_stand',
+      winLbl:'Record → pick group standing', loseLbl:'Record → pick group standing',
+    },
+    rr2_stand: {
+      type:'standing', group:g2L,
+      q:`Group ${g2L} final standing for ${tm.name}?`,
+      cx: cx[g2L],
+    },
+    // ── 5-12 RR for 3rd in pool ──────────────────────────────────────
+    rr3_0: {
+      type:'rr_game', idx:0, rrKey:gp3, allGames:rr3AllGames,
+      id:rr3[0].g, date:rr3[0].date, time:rr3[0].t, loc:rr3[0].loc,
+      round:`${g3L}-Group 5-12 · Game 1 of 3`,
+      isUsW:rr3[0].w, usName:tm.name, oppName:rr3[0].vs,
+      winNext:'rr3_1', loseNext:'rr3_1',
+      winLbl:'Record → next group game', loseLbl:'Record → next group game',
+    },
+    rr3_1: {
+      type:'rr_game', idx:1, rrKey:gp3, allGames:rr3AllGames,
+      id:rr3[1].g, date:rr3[1].date, time:rr3[1].t, loc:rr3[1].loc,
+      round:`${g3L}-Group 5-12 · Game 2 of 3`,
+      isUsW:rr3[1].w, usName:tm.name, oppName:rr3[1].vs,
+      winNext:'rr3_2', loseNext:'rr3_2',
+      winLbl:'Record → next group game', loseLbl:'Record → next group game',
+    },
+    rr3_2: {
+      type:'rr_game', idx:2, rrKey:gp3, allGames:rr3AllGames,
+      id:rr3[2].g, date:rr3[2].date, time:rr3[2].t, loc:rr3[2].loc,
+      round:`${g3L}-Group 5-12 · Game 3 of 3`,
+      isUsW:rr3[2].w, usName:tm.name, oppName:rr3[2].vs,
+      winNext:'rr3_stand', loseNext:'rr3_stand',
+      winLbl:'Record → pick group standing', loseLbl:'Record → pick group standing',
+    },
+    rr3_stand: {
+      type:'standing', group:g3L,
+      q:`Group ${g3L} final standing for ${tm.name}?`,
+      cx: cx[g3L],
+    },
+    // ── 13-16 Semi ───────────────────────────────────────────────────
+    p4: {
+      type:'game', id:s1316.game, date:'Sat Jun 6', time:s1316.time, loc:s1316.loc,
+      round:`13-16 Semifinal`,
+      isUsW: semi1316w,
+      usName:`${tm.name} (4th Pool ${pool})`, oppName:`${s1316.opp}`,
+      winNext:'f13th', loseNext:'f15th',
+      winLbl:'→ 13th Place Game', loseLbl:'→ 15th Place Game',
+    },
+    // ── Final placement games (all have WIN/LOSE → result state) ────────
+    f1st: { type:'game', id:'14G35', date:'Sun Jun 7', time:'10:30 AM', loc:'MARIN ACADEMY',
+      round:'1st Place Final', isUsW:semi14w,
+      usName:tm.name, oppName:'Finalist from other 1-4 Semi',
+      winNext:'r_1st', loseNext:'r_2nd', winLbl:'🏆 Champions!', loseLbl:'🥈 2nd Place' },
+    f3rd: { type:'game', id:'14G36', date:'Sun Jun 7', time:'10:30 AM', loc:'NOVATO HS',
+      round:'3rd Place Game', isUsW:semi14w,
+      usName:tm.name, oppName:'Other 1-4 Semi loser',
+      winNext:'r_3rd', loseNext:'r_4th', winLbl:'🥉 3rd Place', loseLbl:'4th Place' },
+    f5th: { type:'game', id:'14G39', date:'Sun Jun 7', time:'1:00 PM', loc:'MARIN ACADEMY',
+      round:'5th Place Game', isUsW:true,
+      usName:tm.name, oppName:'1st of other group',
+      winNext:'r_5th', loseNext:'r_6th', winLbl:'⭐ 5th Place', loseLbl:'6th Place' },
+    f11th: { type:'game', id:'14G40', date:'Sun Jun 7', time:'1:00 PM', loc:'NOVATO HS',
+      round:'11th Place Game', isUsW:true,
+      usName:tm.name, oppName:'4th of other group',
+      winNext:'r_11th', loseNext:'r_12th', winLbl:'11th Place', loseLbl:'12th Place' },
+    cx_g37: { type:'game', id:'14G37', date:'Sun Jun 7', time:'12:10 PM', loc:'MARIN ACADEMY',
+      round:'7-10 Cross Game', isUsW:true,
+      usName:tm.name, oppName:'Cross-bracket opponent',
+      winNext:'f7th', loseNext:'f9th', winLbl:'→ 7th Place Game', loseLbl:'→ 9th Place Game' },
+    cx_g38: { type:'game', id:'14G38', date:'Sun Jun 7', time:'12:10 PM', loc:'NOVATO HS',
+      round:'7-10 Cross Game', isUsW:true,
+      usName:tm.name, oppName:'Cross-bracket opponent',
+      winNext:'f7th', loseNext:'f9th', winLbl:'→ 7th Place Game', loseLbl:'→ 9th Place Game' },
+    f7th: { type:'game', id:'14G41', date:'Sun Jun 7', time:'2:40 PM', loc:'MARIN ACADEMY',
+      round:'7th Place Game', isUsW:true,
+      usName:tm.name, oppName:'Other cross-game winner',
+      winNext:'r_7th', loseNext:'r_8th', winLbl:'🏅 7th Place', loseLbl:'8th Place' },
+    f9th: { type:'game', id:'14G42', date:'Sun Jun 7', time:'2:40 PM', loc:'NOVATO HS',
+      round:'9th Place Game', isUsW:true,
+      usName:tm.name, oppName:'Other cross-game loser',
+      winNext:'r_9th', loseNext:'r_10th', winLbl:'9th Place', loseLbl:'10th Place' },
+    f13th: { type:'game', id:'14G33', date:'Sun Jun 7', time:'9:40 AM', loc:'NOVATO HS',
+      round:'13th Place Game', isUsW:semi1316w,
+      usName:tm.name, oppName:'Other 13-16 Semi winner',
+      winNext:'r_13th', loseNext:'r_14th', winLbl:'13th Place', loseLbl:'14th Place' },
+    f15th: { type:'game', id:'14G34', date:'Sun Jun 7', time:'9:40 AM', loc:'MARIN ACADEMY',
+      round:'15th Place Game', isUsW:semi1316w,
+      usName:tm.name, oppName:'Other 13-16 Semi loser',
+      winNext:'r_15th', loseNext:'r_16th', winLbl:'15th Place', loseLbl:'16th Place' },
+
+    // ── Final results ─────────────────────────────────────────────────
+    r_1st: {type:'result',place:1, trophy:'🏆',label:'Champions!',    color:'#f59e0b'},
+    r_2nd: {type:'result',place:2, trophy:'🥈',label:'2nd Place',     color:'#94a3b8'},
+    r_3rd: {type:'result',place:3, trophy:'🥉',label:'3rd Place',     color:'#b45309'},
+    r_4th: {type:'result',place:4, trophy:'4️⃣',label:'4th Place',    color:'#64748b'},
+    r_5th: {type:'result',place:5, trophy:'⭐',label:'5th Place',     color:'#3b82f6'},
+    r_6th: {type:'result',place:6, trophy:'⭐',label:'6th Place',     color:'#3b82f6'},
+    r_7th: {type:'result',place:7, trophy:'🏅',label:'7th Place',     color:'#22c55e'},
+    r_8th: {type:'result',place:8, trophy:'🏅',label:'8th Place',     color:'#22c55e'},
+    r_9th: {type:'result',place:9, trophy:'🔵',label:'9th Place',     color:'#64748b'},
+    r_10th:{type:'result',place:10,trophy:'🔵',label:'10th Place',    color:'#64748b'},
+    r_11th:{type:'result',place:11,trophy:'🔵',label:'11th Place',    color:'#475569'},
+    r_12th:{type:'result',place:12,trophy:'🔵',label:'12th Place',    color:'#475569'},
+    r_13th:{type:'result',place:13,trophy:'🎖', label:'13th Place',   color:'#374151'},
+    r_14th:{type:'result',place:14,trophy:'🎖', label:'14th Place',   color:'#374151'},
+    r_15th:{type:'result',place:15,trophy:'🔵',label:'15th Place',    color:'#374151'},
+    r_16th:{type:'result',place:16,trophy:'🔵',label:'16th Place',    color:'#374151'},
+  };
+}
+
+// ─── App State ─────────────────────────────────────────────────────
+let STATES = {}, history = [], cur = 'g1', selectedTeam = null;
+
+// ─── Select Screen ─────────────────────────────────────────────────
+function buildSelectScreen() {
+  const pools = {A:[],B:[],C:[],D:[]};
+  Object.entries(TEAMS).forEach(([id,t]) => pools[t.pool].push({id,...t}));
+  const html = Object.entries(pools).map(([p,ts]) => `
+    <div class="pool-group">
+      <div class="pool-label">Pool ${p}</div>
+      <div class="team-grid">
+        ${ts.sort((a,b)=>a.seed-b.seed).map(t=>`
+          <button class="team-btn" onclick="selectTeam('${t.id}')">
+            <div class="team-seed">Seed ${t.seed}</div>
+            <div class="team-name">${t.name}</div>
+          </button>`).join('')}
+      </div>
+    </div>`).join('');
+  document.getElementById('pool-list').innerHTML = html;
+}
+
+function selectTeam(tid) {
+  selectedTeam = tid;
+  STATES = buildStates(tid);
+  history = []; cur = 'g1';
+  const tm = TEAMS[tid];
+  document.getElementById('h-team').textContent = tm.name;
+  document.getElementById('h-sub').textContent = `Pool ${tm.pool} · Seed ${tm.seed} · Junior Olympic Quals, Marin`;
+  document.getElementById('select-screen').style.display = 'none';
+  document.getElementById('tracker-screen').style.display = 'block';
+  render();
+}
+
+// ─── Render ────────────────────────────────────────────────────────
+function render() {
+  updateProgress();
+  const state = STATES[cur];
+  let html = '';
+
+  // History
+  if (history.length) {
+    html += '<div class="history">';
+    history.forEach(h => {
+      const cls = h.r==='W'?'w':h.r==='L'?'l':'n';
+      const rTxt = h.r==='W'?'WIN':h.r==='L'?'LOSS':'—';
+      html += `<div class="hist-item ${cls}">
+        <div class="hist-gid">${h.gid}</div>
+        <div class="hist-lbl">${h.lbl}</div>
+        <div class="hist-res ${cls}">${rTxt}</div>
+      </div>`;
+    });
+    html += '</div><div class="connector"><div class="conn-line"></div></div>';
+  }
+
+  html += '<div class="cur-wrap">';
+
+  if (state.type === 'game' || state.type === 'rr_game') {
+    html += `<div class="step-lbl">${state.round}</div>`;
+    html += `<div class="game-card">`;
+    html += `<div class="gc-head"><div class="gc-id">${state.id}</div><div class="gc-round">${state.date}</div></div>`;
+    html += `<div class="gc-meta">
+      <div class="meta-row"><div class="meta-ic">🕐</div><div class="meta-tx"><strong>${state.time}</strong></div></div>
+      <div class="meta-row"><div class="meta-ic">📍</div><div class="meta-tx"><strong>${state.loc}</strong></div></div>
+    </div>`;
+    // Matchup
+    const usW = state.isUsW;
+    html += `<div class="matchup">
+      <div class="mu-row">
+        <div>
+          <div class="cap-lbl">WHITE CAP</div>
+          <div class="cap-name"><div class="cap-dot cap-w"></div>${usW?`${state.usName} <span class="us-tag">YOU</span>`:state.oppName}</div>
+        </div>
+      </div>
+      <div class="mu-row">
+        <div>
+          <div class="cap-lbl">DARK CAP</div>
+          <div class="cap-name"><div class="cap-dot cap-d"></div>${!usW?`${state.usName} <span class="us-tag">YOU</span>`:state.oppName}</div>
+        </div>
+      </div>
+    </div>`;
+    html += `<div class="btn-row">
+      <button class="btn-win" onclick="go('W')">WIN<span class="btn-sub">${state.winLbl}</span></button>
+      <button class="btn-lose" onclick="go('L')">LOSS<span class="btn-sub">${state.loseLbl}</span></button>
+    </div></div>`;
+
+  } else if (state.type === 'standing') {
+    html += `<div class="step-lbl">Group ${state.group} · Final Standing</div>`;
+    html += `<div class="game-card"><div class="gc-head">
+      <div class="gc-id">Group ${state.group}</div>
+      <div class="gc-round">All 3 group games done</div>
+    </div>
+    <div class="stand-wrap" style="padding-top:14px;">
+      <div class="stand-q">${state.q}</div>
+      <div class="stand-grid">
+        ${[[1,'🥇','→ 5th Place'],[2,'🥈','→ 7th or 9th'],[3,'🥉','→ 7th or 9th'],[4,'4️⃣','→ 11th Place']].map(([p,em,sub])=>`
+        <button class="btn-pl p${p}" onclick="pickStanding(${p})">
+          <span class="pl-num">${em}</span>
+          <span style="font-size:14px;font-weight:700">${p}${['st','nd','rd','th'][p-1]} in ${state.group}</span>
+          <span class="pl-sub">${sub}</span>
+        </button>`).join('')}
+      </div>
+    </div></div>`;
+
+  } else if (state.type === 'result') {
+    const bannerBg = state.place === 1
+      ? 'linear-gradient(135deg,#78350f,#92400e,#b45309)'
+      : state.place <= 3 ? 'linear-gradient(135deg,#1e293b,#2d3f55)'
+      : 'linear-gradient(135deg,#0f172a,#1e293b)';
+    html += `<div class="step-lbl">Final Result</div>`;
+    html += `<div class="result-card confetti">
+      <div class="result-banner" style="background:${bannerBg}">
+        <div class="result-trophy">${state.trophy}</div>
+        <div class="result-place" style="color:${state.color}">${state.label}</div>
+        <div class="result-team">${TEAMS[selectedTeam].name}</div>
+      </div>
+    </div>`;
+
+  } else if (state.type === 'final') {
+    // legacy — should not appear anymore
+    html += `<div class="step-lbl">Final Game · Sun Jun 7</div>`;
+    html += `<div class="game-card">
+      <div class="gc-head"><div class="gc-id">${state.id}</div><div class="gc-round">${state.place}</div></div>
+      <div class="gc-meta">
+        <div class="meta-row"><div class="meta-ic">🕐</div><div class="meta-tx"><strong>${state.time}</strong></div></div>
+        <div class="meta-row"><div class="meta-ic">📍</div><div class="meta-tx"><strong>${state.loc}</strong></div></div>
+      </div>
+    </div>`;
+  }
+
+  html += '</div>';
+  html += `<button class="reset-btn" onclick="resetAll()">↩ Choose different team</button>`;
+  document.getElementById('app').innerHTML = html;
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function go(result) {
+  const state = STATES[cur];
+  history.push({ gid: state.id, lbl: state.round, r: result });
+  cur = result === 'W' ? state.winNext : state.loseNext;
+  render();
+}
+
+function pickStanding(place) {
+  const state = STATES[cur];
+  const cx = state.cx;
+  history.push({ gid: 'GRP', lbl: `Group ${state.group}: ${place}${['st','nd','rd','th'][place-1]}`, r: null });
+
+  if (place === 1) cur = 'f5th';
+  else if (place === 4) cur = 'f11th';
+  else {
+    // 2nd or 3rd → cross game
+    const gl = state.group;
+    // G group: 2nd→14G38(cx_g38), 3rd→14G37(cx_g37)
+    // H group: 2nd→14G37(cx_g37), 3rd→14G38(cx_g38)
+    if (gl === 'G') cur = place === 2 ? 'cx_g38' : 'cx_g37';
+    else            cur = place === 2 ? 'cx_g37' : 'cx_g38';
+  }
+  render();
+}
+
+function resetAll() {
+  document.getElementById('tracker-screen').style.display = 'none';
+  document.getElementById('select-screen').style.display = 'block';
+  history = []; cur = 'g1'; selectedTeam = null;
+}
+
+function updateProgress() {
+  const total = 5, done = history.length;
+  const bar = document.getElementById('prog-bar');
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    let cls = 'pd';
+    if (i < done) { cls += ' done'; if (history[i]?.r==='L') cls += ' loss'; }
+    else if (i === done) cls += ' cur';
+    html += `<div class="${cls}"></div>`;
+  }
+  const isFinal = STATES[cur]?.type === 'result';
+  html += `<span class="p-label">${isFinal ? '🏁 Done!' : 'Game '+(done+1)}</span>`;
+  bar.innerHTML = html;
+}
+
+// ─── Init ──────────────────────────────────────────────────────────
+buildSelectScreen();
+</script>
+</body>
+</html>
