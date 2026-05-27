@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Stanford B — 14U Girls Tournament Path</title>
+<style>
+  :root {
+    --navy: #0f172a;
+    --card: #1e293b;
+    --border: #2d3f55;
+    --white: #f1f5f9;
+    --muted: #64748b;
+    --dim: #94a3b8;
+    --win: #22c55e;
+    --lose: #ef4444;
+    --accent: #3b82f6;
+    --gold: #f59e0b;
+    --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--navy); color: var(--white);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    min-height: 100vh; padding: 0 0 80px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .team-name { font-size: 22px; font-weight: 700; color: var(--white); letter-spacing: -0.3px; }
+  .division-badge {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    background: rgba(59,130,246,0.2); color: var(--accent);
+    border: 1px solid rgba(59,130,246,0.35);
+    padding: 3px 10px; border-radius: 100px;
+  }
+  .header-sub { font-size: 12px; color: var(--muted); }
+
+  /* Progress bar */
+  .progress-bar {
+    display: flex; gap: 6px; padding: 14px 20px 0;
+    align-items: center;
+  }
+  .progress-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .progress-dot.done { background: var(--win); }
+  .progress-dot.done.loss { background: var(--lose); }
+  .progress-dot.current { background: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.25); }
+  .progress-label { font-size: 11px; color: var(--muted); margin-left: 4px; }
+
+  /* History */
+  .history { padding: 16px 20px 0; }
+  .history-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    margin-bottom: 8px; opacity: 0.7;
+  }
+  .history-item.win-item { border-left: 3px solid var(--win); }
+  .history-item.lose-item { border-left: 3px solid var(--lose); }
+  .hist-game { font-size: 11px; font-weight: 700; color: var(--dim); min-width: 34px; }
+  .hist-info { flex: 1; min-width: 0; }
+  .hist-label { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-result {
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 100px;
+  }
+  .hist-result.w { background: rgba(34,197,94,0.15); color: var(--win); }
+  .hist-result.l { background: rgba(239,68,68,0.15); color: var(--lose); }
+
+  /* Current game card */
+  .current-wrap { padding: 16px 20px 0; }
+  .step-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    color: var(--accent); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .game-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+  }
+  .game-card-header {
+    background: rgba(59,130,246,0.08);
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .game-id { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .game-round { font-size: 12px; color: var(--dim); }
+  .game-meta {
+    padding: 14px 18px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .meta-row { display: flex; align-items: center; gap: 10px; }
+  .meta-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+  .meta-text { font-size: 13px; color: var(--dim); }
+  .meta-text strong { color: var(--white); font-weight: 600; }
+  .matchup {
+    margin: 4px 18px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .matchup-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 0;
+  }
+  .matchup-row + .matchup-row { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 3px; }
+  .team-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .team-name-match {
+    font-size: 14px; font-weight: 600; color: var(--white);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .us-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    background: rgba(59,130,246,0.2); color: var(--accent);
+    border: 1px solid rgba(59,130,246,0.35);
+    padding: 1px 6px; border-radius: 100px;
+  }
+  .cap-color {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.2);
+  }
+  .cap-white { background: #f1f5f9; }
+  .cap-dark  { background: #1e293b; border-color: #64748b; }
+
+  /* Win/Lose buttons */
+  .btn-row { display: flex; gap: 10px; padding: 0 18px 18px; }
+  .btn-win, .btn-lose {
+    flex: 1; padding: 16px 12px; border-radius: 12px;
+    border: none; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: transform 0.12s, opacity 0.12s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .btn-win:active, .btn-lose:active { transform: scale(0.96); }
+  .btn-win {
+    background: rgba(34,197,94,0.15); color: var(--win);
+    border: 1.5px solid rgba(34,197,94,0.35);
+  }
+  .btn-lose {
+    background: rgba(239,68,68,0.15); color: var(--lose);
+    border: 1.5px solid rgba(239,68,68,0.35);
+  }
+  .btn-sub { font-size: 10px; font-weight: 500; opacity: 0.7; }
+
+  /* Group stage card */
+  .group-info {
+    margin: 0 18px 14px;
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .group-title { font-size: 11px; font-weight: 700; color: var(--purple); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .group-game-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+  }
+  .group-game-row + .group-game-row { border-top: 1px solid rgba(167,139,250,0.12); padding-top: 7px; margin-top: 1px; }
+  .gg-id { font-size: 12px; font-weight: 700; color: var(--purple); min-width: 34px; }
+  .gg-info { flex: 1; }
+  .gg-time { font-size: 12px; color: var(--white); font-weight: 500; }
+  .gg-loc  { font-size: 11px; color: var(--muted); }
+  .gg-vs   { font-size: 11px; color: var(--dim); }
+
+  /* Standing picker */
+  .standing-wrap { padding: 0 18px 18px; }
+  .standing-q { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 12px; }
+  .standing-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-place {
+    padding: 14px 8px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--navy); color: var(--white);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: transform 0.12s, border-color 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .btn-place:active { transform: scale(0.96); }
+  .btn-place .place-num { font-size: 24px; font-weight: 800; line-height: 1; }
+  .btn-place .place-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+  .btn-place.p1 { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.06); }
+  .btn-place.p2 { border-color: var(--dim); color: var(--dim); }
+  .btn-place.p3 { border-color: #92400e; color: #b45309; }
+  .btn-place.p4 { border-color: var(--border); color: var(--muted); }
+
+  /* Final game card */
+  .final-card {
+    background: var(--card); border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .final-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .final-trophy { font-size: 28px; }
+  .final-place-label { font-size: 20px; font-weight: 800; color: var(--white); }
+  .final-sub { font-size: 12px; color: var(--dim); }
+  .final-meta { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* Reset */
+  .reset-btn {
+    margin: 20px 20px 0;
+    width: calc(100% - 40px);
+    padding: 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-size: 14px; font-weight: 500;
+    cursor: pointer;
+  }
+  .reset-btn:active { background: var(--card); }
+
+  /* Connector */
+  .connector { display: flex; justify-content: center; padding: 4px 0; }
+  .connector-line {
+    width: 2px; height: 16px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+
+  /* Cross-game note */
+  .cross-note {
+    margin: 0 18px 14px;
+    padding: 8px 12px; border-radius: 8px;
+    background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2);
+    font-size: 12px; color: #d97706;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="team-name">⚡ Stanford B</div>
+    <div class="division-badge">14U GIRLS</div>
+  </div>
+  <div class="header-sub">Pool A · Seed 2 · Junior Olympic Quals, Marin</div>
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-dot current" id="pd0"></div>
+    <div class="progress-dot" id="pd1"></div>
+    <div class="progress-dot" id="pd2"></div>
+    <div class="progress-dot" id="pd3"></div>
+    <div class="progress-dot" id="pd4"></div>
+    <span class="progress-label" id="progressLabel">Game 1 of 4–5</span>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<script>
+// ─── State ──────────────────────────────────────────────
+let history = [];   // [{state, result, label}]
+let currentState = 'g02';
+
+// ─── Data ──────────────────────────────────────────────
+const STATES = {
+
+  g02: {
+    type: 'game',
+    id: '14G02', date: 'Fri Jun 5', time: '4:50 PM', location: 'MIWOK DIVE',
+    round: 'Pool Play — W/L A, A2/A3',
+    usColor: 'WHITE', us: 'STANFORD B',
+    themColor: 'DARK', them: 'A3 · SHAQ',
+    winNext: 'g11', loseNext: 'g09',
+    winLabel: '→ Play for 1st/2nd in Pool A',
+    loseLabel: '→ Play for 3rd/4th in Pool A',
+  },
+
+  g11: {
+    type: 'game',
+    id: '14G11', date: 'Sat Jun 6', time: '8:50 AM', location: 'NOVATO HS',
+    round: '1st / 2nd Pool A',
+    usColor: 'DARK', us: 'STANFORD B (W#2)',
+    themColor: 'WHITE', them: 'Winner of G01 (Diablo Alliance A or Stanford C)',
+    winNext: 'g23', loseNext: 'group_g_g17',
+    winLabel: '→ 1-4 Championship Bracket',
+    loseLabel: '→ 5-12 Group G bracket',
+  },
+
+  g09: {
+    type: 'game',
+    id: '14G09', date: 'Sat Jun 6', time: '8:00 AM', location: 'NOVATO HS',
+    round: '3rd / 4th Pool A',
+    usColor: 'DARK', us: 'STANFORD B (L#2)',
+    themColor: 'WHITE', them: 'Loser of G01 (Diablo Alliance A or Stanford C)',
+    winNext: 'group_h_g19', loseNext: 'g21',
+    winLabel: '→ 5-12 Group H bracket',
+    loseLabel: '→ 13-16 Semifinal',
+  },
+
+  g23: {
+    type: 'game',
+    id: '14G23', date: 'Sat Jun 6', time: '5:10 PM', location: 'MARIN ACADEMY',
+    round: '1-4 Semifinal',
+    usColor: 'WHITE', us: 'E1 · STANFORD B (1st Pool A)',
+    themColor: 'DARK', them: 'E4 · 1st Pool D (winner of G12)',
+    winNext: 'g35', loseNext: 'g36',
+    winLabel: '→ 1st Place Final',
+    loseLabel: '→ 3rd Place Game',
+  },
+
+  g21: {
+    type: 'game',
+    id: '14G21', date: 'Sat Jun 6', time: '4:20 PM', location: 'MARIN ACADEMY',
+    round: '13-16 Semifinal',
+    usColor: 'WHITE', us: 'F1 · STANFORD B (4th Pool A)',
+    themColor: 'DARK', them: 'F4 · 4th Pool D (loser of G10)',
+    winNext: 'g33', loseNext: 'g34',
+    winLabel: '→ 13th Place Game',
+    loseLabel: '→ 15th Place Game',
+  },
+
+  // ── Group G (5-12 bracket, 2nd in Pool A) ──
+  group_g_g17: {
+    type: 'group_game',
+    groupLabel: 'Group G · 5-12 Bracket · Game 1 of 2',
+    id: '14G17', date: 'Sat Jun 6', time: '2:40 PM', location: 'MARIN ACADEMY',
+    round: '5-12 Bracket — Group G',
+    usColor: 'WHITE', us: 'G2 · STANFORD B (2nd Pool A)',
+    themColor: 'DARK', them: 'G3 · 3rd Pool B (winner of G13)',
+    nextState: 'group_g_g27',
+    winLabel: 'Record result → next group game',
+    loseLabel: 'Record result → next group game',
+  },
+
+  group_g_g27: {
+    type: 'group_game',
+    groupLabel: 'Group G · 5-12 Bracket · Game 2 of 2',
+    id: '14G27', date: 'Sat Jun 6', time: '6:50 PM', location: 'MARIN ACADEMY',
+    round: '5-12 Bracket — Group G',
+    usColor: 'WHITE', us: 'G2 · STANFORD B (2nd Pool A)',
+    themColor: 'DARK', them: 'G4 · 3rd Pool C (winner of G14)',
+    nextState: 'group_g_standing',
+    winLabel: 'Record result → pick group standing',
+    loseLabel: 'Record result → pick group standing',
+  },
+
+  group_g_standing: {
+    type: 'standing',
+    group: 'G',
+    intro: 'Based on all Group G results, what place did Stanford B finish?',
+    paths: {
+      1: { label: 'G39', next: 'g39' },
+      2: { label: 'G38', next: 'g38_cross' },
+      3: { label: 'G37', next: 'g37_cross' },
+      4: { label: 'G40', next: 'g40' },
+    }
+  },
+
+  // ── Group H (5-12 bracket, 3rd in Pool A) ──
+  group_h_g19: {
+    type: 'group_game',
+    groupLabel: 'Group H · 5-12 Bracket · Game 1 of 2',
+    id: '14G19', date: 'Sat Jun 6', time: '3:30 PM', location: 'MARIN ACADEMY',
+    round: '5-12 Bracket — Group H',
+    usColor: 'DARK', us: 'H3 · STANFORD B (3rd Pool A)',
+    themColor: 'WHITE', them: 'H2 · 2nd Pool B (loser of G15)',
+    nextState: 'group_h_g26',
+    winLabel: 'Record result → next group game',
+    loseLabel: 'Record result → next group game',
+  },
+
+  group_h_g26: {
+    type: 'group_game',
+    groupLabel: 'Group H · 5-12 Bracket · Game 2 of 2',
+    id: '14G26', date: 'Sat Jun 6', time: '6:00 PM', location: 'NOVATO HS',
+    round: '5-12 Bracket — Group H',
+    usColor: 'DARK', us: 'H3 · STANFORD B (3rd Pool A)',
+    themColor: 'WHITE', them: 'H1 · 2nd Pool C (loser of G16)',
+    nextState: 'group_h_standing',
+    winLabel: 'Record result → pick group standing',
+    loseLabel: 'Record result → pick group standing',
+  },
+
+  group_h_standing: {
+    type: 'standing',
+    group: 'H',
+    intro: 'Based on all Group H results, what place did Stanford B finish?',
+    paths: {
+      1: { label: 'G39', next: 'g39' },
+      2: { label: 'G37', next: 'g37_cross' },
+      3: { label: 'G38', next: 'g38_cross' },
+      4: { label: 'G40', next: 'g40' },
+    }
+  },
+
+  // ── Day 3 placement games ──
+  g35: {
+    type: 'final',
+    trophy: '🏆', place: '1st Place Final',
+    id: '14G35', date: 'Sun Jun 7', time: '10:30 AM', location: 'MARIN ACADEMY',
+    them: 'Winner of G24 (1stB vs 1stC)',
+  },
+  g36: {
+    type: 'final',
+    trophy: '🥉', place: '3rd Place',
+    id: '14G36', date: 'Sun Jun 7', time: '10:30 AM', location: 'NOVATO HS',
+    them: 'Loser of G24 (1stB vs 1stC)',
+  },
+  g33: {
+    type: 'final',
+    trophy: '🏅', place: '13th Place',
+    id: '14G33', date: 'Sun Jun 7', time: '9:40 AM', location: 'NOVATO HS',
+    them: 'Winner of G22 (W#22)',
+  },
+  g34: {
+    type: 'final',
+    trophy: '🔵', place: '15th Place',
+    id: '14G34', date: 'Sun Jun 7', time: '9:40 AM', location: 'MARIN ACADEMY',
+    them: 'Loser of G22 (L#22)',
+  },
+  g39: {
+    type: 'final',
+    trophy: '⭐', place: '5th Place',
+    id: '14G39', date: 'Sun Jun 7', time: '1:00 PM', location: 'MARIN ACADEMY',
+    them: '1st in the other group (H or G)',
+  },
+  g40: {
+    type: 'final',
+    trophy: '🔵', place: '11th Place',
+    id: '14G40', date: 'Sun Jun 7', time: '1:00 PM', location: 'NOVATO HS',
+    them: '4th in the other group (H or G)',
+  },
+
+  g37_cross: {
+    type: 'game',
+    id: '14G37', date: 'Sun Jun 7', time: '12:10 PM', location: 'MARIN ACADEMY',
+    round: '7-10 Cross Game',
+    usColor: '—', us: 'STANFORD B',
+    themColor: '—', them: 'Cross-bracket opponent',
+    winNext: 'g41', loseNext: 'g42',
+    winLabel: '→ 7th Place Game',
+    loseLabel: '→ 9th Place Game',
+    crossNote: 'G37: 2nd in Group H vs 3rd in Group G',
+  },
+
+  g38_cross: {
+    type: 'game',
+    id: '14G38', date: 'Sun Jun 7', time: '12:10 PM', location: 'NOVATO HS',
+    round: '7-10 Cross Game',
+    usColor: '—', us: 'STANFORD B',
+    themColor: '—', them: 'Cross-bracket opponent',
+    winNext: 'g41', loseNext: 'g42',
+    winLabel: '→ 7th Place Game',
+    loseLabel: '→ 9th Place Game',
+    crossNote: 'G38: 2nd in Group G vs 3rd in Group H',
+  },
+
+  g41: {
+    type: 'final',
+    trophy: '🌟', place: '7th Place',
+    id: '14G41', date: 'Sun Jun 7', time: '2:40 PM', location: 'MARIN ACADEMY',
+    them: 'Other cross game winner',
+  },
+  g42: {
+    type: 'final',
+    trophy: '🔵', place: '9th Place',
+    id: '14G42', date: 'Sun Jun 7', time: '2:40 PM', location: 'NOVATO HS',
+    them: 'Other cross game loser',
+  },
+};
+
+// ─── Render ─────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const state = STATES[currentState];
+  let html = '';
+
+  // History
+  if (history.length > 0) {
+    html += '<div class="history">';
+    history.forEach(h => {
+      const cls = h.result === 'W' ? 'win-item' : 'lose-item';
+      const resultCls = h.result === 'W' ? 'w' : 'l';
+      const resultText = h.result === 'W' ? 'WIN' : 'LOSS';
+      html += `
+        <div class="history-item ${cls}">
+          <div class="hist-game">${h.gameId || '—'}</div>
+          <div class="hist-info">
+            <div class="hist-label">${h.label}</div>
+          </div>
+          <div class="hist-result ${resultCls}">${resultText}</div>
+        </div>`;
+    });
+    html += '</div>';
+    html += '<div class="connector"><div class="connector-line"></div></div>';
+  }
+
+  // Current state
+  html += '<div class="current-wrap">';
+  const gameNum = history.length + 1;
+
+  if (state.type === 'game' || state.type === 'group_game') {
+    const isGroup = state.type === 'group_game';
+    html += `<div class="step-label">${isGroup ? state.groupLabel : 'Game ' + gameNum}</div>`;
+    html += `<div class="game-card">`;
+    html += `
+      <div class="game-card-header">
+        <div class="game-id">${state.id}</div>
+        <div class="game-round">${state.round}</div>
+      </div>`;
+    html += `<div class="game-meta">`;
+    html += `
+      <div class="meta-row">
+        <div class="meta-icon">📅</div>
+        <div class="meta-text"><strong>${state.date}</strong></div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-icon">🕐</div>
+        <div class="meta-text"><strong>${state.time}</strong></div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-icon">📍</div>
+        <div class="meta-text"><strong>${state.location}</strong></div>
+      </div>`;
+    html += `</div>`;
+
+    if (state.crossNote) {
+      html += `<div class="cross-note">ℹ️ ${state.crossNote}</div>`;
+    }
+
+    html += `<div class="matchup">`;
+    // White
+    const isUs_white = state.usColor === 'WHITE';
+    html += `
+      <div class="matchup-row">
+        <div>
+          <div class="team-label">WHITE CAP</div>
+          <div class="team-name-match">
+            <div class="cap-color cap-white"></div>
+            ${isUs_white ? state.us + ' <span class="us-badge">US</span>' : state.them}
+          </div>
+        </div>
+      </div>
+      <div class="matchup-row">
+        <div>
+          <div class="team-label">DARK CAP</div>
+          <div class="team-name-match">
+            <div class="cap-color cap-dark"></div>
+            ${!isUs_white ? state.us + ' <span class="us-badge">US</span>' : state.them}
+          </div>
+        </div>
+      </div>`;
+    html += `</div>`;
+
+    if (isGroup) {
+      html += `
+        <div class="btn-row">
+          <button class="btn-win" onclick="recordResult('W')">
+            🏆 WIN
+            <span class="btn-sub">${state.winLabel}</span>
+          </button>
+          <button class="btn-lose" onclick="recordResult('L')">
+            💧 LOSS
+            <span class="btn-sub">${state.loseLabel}</span>
+          </button>
+        </div>`;
+    } else {
+      html += `
+        <div class="btn-row">
+          <button class="btn-win" onclick="recordResult('W')">
+            🏆 WIN
+            <span class="btn-sub">${state.winLabel}</span>
+          </button>
+          <button class="btn-lose" onclick="recordResult('L')">
+            💧 LOSS
+            <span class="btn-sub">${state.loseLabel}</span>
+          </button>
+        </div>`;
+    }
+    html += `</div>`;
+
+  } else if (state.type === 'standing') {
+    html += `<div class="step-label">Group ${state.group} · Final Standing</div>`;
+    html += `<div class="game-card">`;
+    html += `
+      <div class="game-card-header">
+        <div class="game-id">Group ${state.group}</div>
+        <div class="game-round">5-12 Bracket · Group Stage Complete</div>
+      </div>`;
+    html += `<div class="standing-wrap" style="padding-top:14px;">`;
+    html += `<div class="standing-q">${state.intro}</div>`;
+    html += `<div class="standing-btns">`;
+    [[1,'🥇','→ 5th Place'],[2,'🥈','→ 7th or 9th'],[3,'🥉','→ 7th or 9th'],[4,'4️⃣','→ 11th Place']].forEach(([p, emoji, sub]) => {
+      html += `
+        <button class="btn-place p${p}" onclick="pickStanding(${p})">
+          <span class="place-num">${emoji} ${p}${['st','nd','rd','th'][p-1]}</span>
+          <span class="place-sub">${sub}</span>
+        </button>`;
+    });
+    html += `</div></div></div>`;
+
+  } else if (state.type === 'final') {
+    html += `<div class="step-label">Final Game · Day 3</div>`;
+    html += `<div class="final-card">`;
+    html += `
+      <div class="final-header">
+        <div class="final-trophy">${state.trophy}</div>
+        <div>
+          <div class="final-place-label">${state.place}</div>
+          <div class="final-sub">${state.id}</div>
+        </div>
+      </div>`;
+    html += `<div class="final-meta">
+      <div class="meta-row"><div class="meta-icon">📅</div><div class="meta-text"><strong>${state.date}</strong></div></div>
+      <div class="meta-row"><div class="meta-icon">🕐</div><div class="meta-text"><strong>${state.time}</strong></div></div>
+      <div class="meta-row"><div class="meta-icon">📍</div><div class="meta-text"><strong>${state.location}</strong></div></div>
+      <div class="meta-row"><div class="meta-icon">🆚</div><div class="meta-text">${state.them}</div></div>
+    </div>`;
+    html += `</div>`;
+  }
+
+  html += '</div>';
+
+  // Reset
+  html += `<button class="reset-btn" onclick="resetAll()">↺ Start Over</button>`;
+
+  app.innerHTML = html;
+  updateProgress();
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function recordResult(result) {
+  const state = STATES[currentState];
+  history.push({
+    result,
+    gameId: state.id,
+    label: state.round,
+  });
+
+  if (state.type === 'group_game') {
+    currentState = state.nextState;
+  } else {
+    currentState = result === 'W' ? state.winNext : state.loseNext;
+  }
+  render();
+}
+
+function pickStanding(place) {
+  const state = STATES[currentState];
+  history.push({
+    result: 'W', // neutral, just tracking
+    gameId: 'GRP',
+    label: `Group ${state.group} finish: ${place}${['st','nd','rd','th'][place-1]} place`,
+  });
+  currentState = state.paths[place].next;
+  render();
+}
+
+function resetAll() {
+  history = [];
+  currentState = 'g02';
+  render();
+}
+
+function updateProgress() {
+  const total = 5;
+  const done = history.length;
+  for (let i = 0; i < total; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (!dot) continue;
+    dot.className = 'progress-dot';
+    if (i < done) {
+      dot.classList.add('done');
+      if (history[i] && history[i].result === 'L') dot.classList.add('loss');
+    } else if (i === done) {
+      dot.classList.add('current');
+    }
+  }
+  const label = document.getElementById('progressLabel');
+  if (label) {
+    const isFinal = STATES[currentState]?.type === 'final';
+    label.textContent = isFinal ? 'Final game' : `Game ${done + 1}`;
+  }
+}
+
+// ─── Init ────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
