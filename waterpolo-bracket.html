@@ -21,6 +21,12 @@
   .select-sub { font-size:13px; color:var(--muted); margin-bottom:28px; }
   .pool-group { margin-bottom:20px; }
   .pool-label { font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; padding-left:2px; }
+  .select-prompt {
+    font-size:22px; font-weight:800; color:#00d4ff;
+    border:2px solid rgba(0,212,255,.45); border-radius:12px;
+    padding:13px 20px; margin-bottom:24px; text-align:center;
+    letter-spacing:1.5px; background:rgba(0,212,255,.06);
+  }
   .team-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .team-btn {
     padding:14px 12px; border-radius:12px; border:1.5px solid var(--border);
@@ -140,7 +146,8 @@
 <!-- ── Team Selection ── -->
 <div id="select-screen">
   <div class="select-title">14U Girls</div>
-  <div class="select-sub">2026 Pacific Zone JO Quals · Select your team</div>
+  <div class="select-sub">2026 Pacific Zone JO Quals</div>
+  <div class="select-prompt">SELECT YOUR TEAM</div>
   <div id="pool-list"></div>
 </div>
 
@@ -183,16 +190,16 @@ const POOL_FINALS = {
   D:{wGame:"14G12",wTime:"12:10 PM",wLbl:"1st/2nd D",lGame:"14G10",lTime:"11:20 AM",lLbl:"3rd/4th D",loc:"NOVATO HS"},
 };
 const SEMI_14 = {
-  A:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Pool D"},
-  B:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Pool C"},
-  C:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Pool B"},
-  D:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Pool A"},
+  A:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Group D"},
+  B:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Group C"},
+  C:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Group B"},
+  D:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Group A"},
 };
 const SEMI_1316 = {
-  A:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Pool D"},
-  B:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Pool C"},
-  C:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Pool B"},
-  D:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Pool A"},
+  A:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Group D"},
+  B:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Group C"},
+  C:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Group B"},
+  D:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Group A"},
 };
 // Group assignment: pool → {2: groupPos, 3: groupPos}
 const GROUP_OF = {
@@ -200,30 +207,30 @@ const GROUP_OF = {
 };
 // Round-robin schedule per group position. isUsW = is this team WHITE cap?
 const RR = {
-  G1:[{g:"14G18",vs:"G4 · 3rd Pool C",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:true},
-      {g:"14G25",vs:"G3 · 3rd Pool B",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G29",vs:"G2 · 2nd Pool A",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:true}],
-  G2:[{g:"14G17",vs:"G3 · 3rd Pool B",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G27",vs:"G4 · 3rd Pool C",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G29",vs:"G1 · 2nd Pool D",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:false}],
-  G3:[{g:"14G17",vs:"G2 · 2nd Pool A",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:false},
-      {g:"14G25",vs:"G1 · 2nd Pool D",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:false},
-      {g:"14G31",vs:"G4 · 3rd Pool C",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:true}],
-  G4:[{g:"14G18",vs:"G1 · 2nd Pool D",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G27",vs:"G2 · 2nd Pool A",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:false},
-      {g:"14G31",vs:"G3 · 3rd Pool B",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:false}],
-  H1:[{g:"14G20",vs:"H4 · 3rd Pool D",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:true},
-      {g:"14G26",vs:"H3 · 3rd Pool A",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:true},
-      {g:"14G30",vs:"H2 · 2nd Pool B",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:true}],
-  H2:[{g:"14G19",vs:"H3 · 3rd Pool A",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G28",vs:"H4 · 3rd Pool D",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:true},
-      {g:"14G30",vs:"H1 · 2nd Pool C",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:false}],
-  H3:[{g:"14G19",vs:"H2 · 2nd Pool B",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:false},
-      {g:"14G26",vs:"H1 · 2nd Pool C",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G32",vs:"H4 · 3rd Pool D",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:true}],
-  H4:[{g:"14G20",vs:"H1 · 2nd Pool C",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G28",vs:"H2 · 2nd Pool B",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G32",vs:"H3 · 3rd Pool A",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:false}],
+  G1:[{g:"14G18",vs:"G4 · 3rd Group C",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G25",vs:"G3 · 3rd Group B",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G29",vs:"G2 · 2nd Group A",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:true}],
+  G2:[{g:"14G17",vs:"G3 · 3rd Group B",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G27",vs:"G4 · 3rd Group C",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G29",vs:"G1 · 2nd Group D",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:false}],
+  G3:[{g:"14G17",vs:"G2 · 2nd Group A",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G25",vs:"G1 · 2nd Group D",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G31",vs:"G4 · 3rd Group C",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:true}],
+  G4:[{g:"14G18",vs:"G1 · 2nd Group D",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G27",vs:"G2 · 2nd Group A",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G31",vs:"G3 · 3rd Group B",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:false}],
+  H1:[{g:"14G20",vs:"H4 · 3rd Group D",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G26",vs:"H3 · 3rd Group A",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G30",vs:"H2 · 2nd Group B",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:true}],
+  H2:[{g:"14G19",vs:"H3 · 3rd Group A",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G28",vs:"H4 · 3rd Group D",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G30",vs:"H1 · 2nd Group C",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:false}],
+  H3:[{g:"14G19",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G26",vs:"H1 · 2nd Group C",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G32",vs:"H4 · 3rd Group D",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:true}],
+  H4:[{g:"14G20",vs:"H1 · 2nd Group C",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G28",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G32",vs:"H3 · 3rd Group A",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:false}],
 };
 
 // ─── State Machine Builder ──────────────────────────────────────────
@@ -244,7 +251,7 @@ function buildStates(tid) {
   const semi14w = (pool==='A'||pool==='B');
   // For 13-16 semi: A/B → WHITE, C/D depend on game
   const semi1316w = (pool==='A'||pool==='B');
-  // Pool final cap: high-game team = WHITE, low-game team = DARK
+  // Groupfinal cap: high-game team = WHITE, low-game team = DARK
   const pfW = isHigh;
 
   const rr2AllGames = rr2.map(g=>({g:g.g,vs:g.vs,date:g.date,t:g.t,loc:g.loc}));
@@ -267,39 +274,39 @@ function buildStates(tid) {
     g1: {
       type:'game', id: isHigh?pp.highGame:pp.lowGame,
       date:'Fri Jun 5', time: isHigh?pp.highTime:pp.lowTime, loc:pp.loc,
-      round:`Pool Play · Pool ${pool} · Seeds ${isHigh?'1v4':'2v3'}`,
+      round:`Group Play · Group ${pool} · Seeds ${isHigh?'1v4':'2v3'}`,
       isUsW: seed===1||seed===2,
       usName:`${tid} · ${tm.name}`, oppName:`${opp1.id||grp.find(x=>x!==tid)} · ${opp1.name}`,
       winNext:'g2w', loseNext:'g2l',
-      winLbl:`→ Play for 1st/2nd in Pool ${pool}`,
-      loseLbl:`→ Play for 3rd/4th in Pool ${pool}`,
+      winLbl:`→ Play for 1st/2nd in Group ${pool}`,
+      loseLbl:`→ Play for 3rd/4th in Group ${pool}`,
     },
-    // ── Pool Winner Final ────────────────────────────────────────────
+    // ── GroupWinner Final ────────────────────────────────────────────
     g2w: {
       type:'game', id:pf.wGame, date:'Sat Jun 6', time:pf.wTime, loc:pf.loc,
-      round:`${pf.wLbl} · Pool ${pool}`,
+      round:`${pf.wLbl} · Group ${pool}`,
       isUsW: pfW,
-      usName:tm.name, oppName:`${isHigh?'Winner of 2v3':'Winner of 1v4'} · Pool ${pool}`,
+      usName:tm.name, oppName:`${isHigh?'Winner of 2v3':'Winner of 1v4'} · Group ${pool}`,
       winNext:'p1', loseNext:'rr2_0',
-      winLbl:`→ 1st in Pool · 1-4 Championship`,
-      loseLbl:`→ 2nd in Pool · ${g2L}-Group 5-12 Bracket`,
+      winLbl:`→ 1st in Group · 1-4 Championship`,
+      loseLbl:`→ 2nd in Group · ${g2L}-Group 5-12 Bracket`,
     },
-    // ── Pool Loser Final ─────────────────────────────────────────────
+    // ── GroupLoser Final ─────────────────────────────────────────────
     g2l: {
       type:'game', id:pf.lGame, date:'Sat Jun 6', time:pf.lTime, loc:pf.loc,
-      round:`${pf.lLbl} · Pool ${pool}`,
+      round:`${pf.lLbl} · Group ${pool}`,
       isUsW: pfW,
-      usName:tm.name, oppName:`${isHigh?'Loser of 2v3':'Loser of 1v4'} · Pool ${pool}`,
+      usName:tm.name, oppName:`${isHigh?'Loser of 2v3':'Loser of 1v4'} · Group ${pool}`,
       winNext:'rr3_0', loseNext:'p4',
-      winLbl:`→ 3rd in Pool · ${g3L}-Group 5-12 Bracket`,
-      loseLbl:`→ 4th in Pool · 13-16 Bracket`,
+      winLbl:`→ 3rd in Group · ${g3L}-Group 5-12 Bracket`,
+      loseLbl:`→ 4th in Group · 13-16 Bracket`,
     },
     // ── 1-4 Semi ────────────────────────────────────────────────────
     p1: {
       type:'game', id:s14.game, date:'Sat Jun 6', time:s14.time, loc:s14.loc,
       round:`1-4 Semifinal`,
       isUsW: semi14w,
-      usName:`${tm.name} (1st Pool ${pool})`, oppName:`${s14.opp}`,
+      usName:`${tm.name} (1st Group ${pool})`, oppName:`${s14.opp}`,
       winNext:'f1st', loseNext:'f3rd',
       winLbl:'→ 1st Place Final', loseLbl:'→ 3rd Place Game',
     },
@@ -368,7 +375,7 @@ function buildStates(tid) {
       type:'game', id:s1316.game, date:'Sat Jun 6', time:s1316.time, loc:s1316.loc,
       round:`13-16 Semifinal`,
       isUsW: semi1316w,
-      usName:`${tm.name} (4th Pool ${pool})`, oppName:`${s1316.opp}`,
+      usName:`${tm.name} (4th Group ${pool})`, oppName:`${s1316.opp}`,
       winNext:'f13th', loseNext:'f15th',
       winLbl:'→ 13th Place Game', loseLbl:'→ 15th Place Game',
     },
@@ -443,7 +450,7 @@ function buildSelectScreen() {
   Object.entries(TEAMS).forEach(([id,t]) => pools[t.pool].push({id,...t}));
   const html = Object.entries(pools).map(([p,ts]) => `
     <div class="pool-group">
-      <div class="pool-label">Pool ${p}</div>
+      <div class="pool-label">Group ${p}</div>
       <div class="team-grid">
         ${ts.sort((a,b)=>a.seed-b.seed).map(t=>`
           <button class="team-btn" onclick="selectTeam('${t.id}')">
@@ -461,7 +468,7 @@ function selectTeam(tid) {
   history = []; cur = 'g1';
   const tm = TEAMS[tid];
   document.getElementById('h-team').textContent = tm.name;
-  document.getElementById('h-sub').textContent = `Pool ${tm.pool} · Seed ${tm.seed} · Junior Olympic Quals, Marin`;
+  document.getElementById('h-sub').textContent = `Group ${tm.pool} · Seed ${tm.seed} · Junior Olympic Quals, Marin`;
   document.getElementById('select-screen').style.display = 'none';
   document.getElementById('tracker-screen').style.display = 'block';
   render();
