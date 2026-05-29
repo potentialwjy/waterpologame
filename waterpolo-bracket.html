@@ -180,8 +180,8 @@ const TEAMS = {
 const POOL_PLAY = {
   A:{high:["A1","A4"],low:["A2","A3"],highGame:"14G01",lowGame:"14G02",highTime:"4:00 PM",lowTime:"4:50 PM",loc:"MIWOK DIVE"},
   B:{high:["B1","B4"],low:["B2","B3"],highGame:"14G03",lowGame:"14G04",highTime:"5:40 PM",lowTime:"6:30 PM",loc:"MIWOK DIVE"},
-  C:{high:["C1","C4"],low:["C2","C3"],highGame:"14G07",lowGame:"14G08",highTime:"5:40 PM",lowTime:"6:30 PM",loc:"NOVATO HS"},
-  D:{high:["D1","D4"],low:["D2","D3"],highGame:"14G05",lowGame:"14G06",highTime:"7:20 PM",lowTime:"4:50 PM",loc:"NOVATO HS"},
+  C:{high:["C1","C4"],low:["C2","C3"],highGame:"14G07",lowGame:"14G08",highTime:"4:00 PM",lowTime:"5:40 PM",loc:"NOVATO HS"},
+  D:{high:["D1","D4"],low:["D2","D3"],highGame:"14G05",lowGame:"14G06",highTime:"6:30 PM",lowTime:"4:50 PM",loc:"NOVATO HS"},
 };
 const POOL_FINALS = {
   A:{wGame:"14G11",wTime:"8:50 AM", wLbl:"1st/2nd A",lGame:"14G09",lTime:"8:00 AM", lLbl:"3rd/4th A",loc:"NOVATO HS"},
@@ -190,16 +190,16 @@ const POOL_FINALS = {
   D:{wGame:"14G12",wTime:"12:10 PM",wLbl:"1st/2nd D",lGame:"14G10",lTime:"11:20 AM",lLbl:"3rd/4th D",loc:"NOVATO HS"},
 };
 const SEMI_14 = {
-  A:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Group D"},
+  A:{game:"14G23",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"1st Group D"},
   B:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Group C"},
   C:{game:"14G24",time:"6:00 PM",loc:"NOVATO HS",    opp:"1st Group B"},
-  D:{game:"14G23",time:"5:10 PM",loc:"MARIN ACADEMY",opp:"1st Group A"},
+  D:{game:"14G23",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"1st Group A"},
 };
 const SEMI_1316 = {
-  A:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Group D"},
+  A:{game:"14G21",time:"3:30 PM",loc:"MARIN ACADEMY",opp:"4th Group D"},
   B:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Group C"},
   C:{game:"14G22",time:"5:10 PM",loc:"NOVATO HS",    opp:"4th Group B"},
-  D:{game:"14G21",time:"4:20 PM",loc:"MARIN ACADEMY",opp:"4th Group A"},
+  D:{game:"14G21",time:"3:30 PM",loc:"MARIN ACADEMY",opp:"4th Group A"},
 };
 // Group assignment: pool → {2: groupPos, 3: groupPos}
 const GROUP_OF = {
@@ -208,28 +208,28 @@ const GROUP_OF = {
 // Round-robin schedule per group position. isUsW = is this team WHITE cap?
 const RR = {
   G1:[{g:"14G18",vs:"G4 · 3rd Group C",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:true},
-      {g:"14G25",vs:"G3 · 3rd Group B",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G25",vs:"G3 · 3rd Group B",date:"Sat Jun 6",t:"5:10 PM",loc:"MARIN ACADEMY",w:true},
       {g:"14G29",vs:"G2 · 2nd Group A",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:true}],
   G2:[{g:"14G17",vs:"G3 · 3rd Group B",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G27",vs:"G4 · 3rd Group C",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:true},
+      {g:"14G27",vs:"G4 · 3rd Group C",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:true},
       {g:"14G29",vs:"G1 · 2nd Group D",date:"Sun Jun 7",t:"8:00 AM",loc:"NOVATO HS",    w:false}],
   G3:[{g:"14G17",vs:"G2 · 2nd Group A",date:"Sat Jun 6",t:"2:40 PM",loc:"MARIN ACADEMY",w:false},
-      {g:"14G25",vs:"G1 · 2nd Group D",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G25",vs:"G1 · 2nd Group D",date:"Sat Jun 6",t:"5:10 PM",loc:"MARIN ACADEMY",w:false},
       {g:"14G31",vs:"G4 · 3rd Group C",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:true}],
   G4:[{g:"14G18",vs:"G1 · 2nd Group D",date:"Sat Jun 6",t:"3:30 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G27",vs:"G2 · 2nd Group A",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:false},
+      {g:"14G27",vs:"G2 · 2nd Group A",date:"Sat Jun 6",t:"6:00 PM",loc:"MARIN ACADEMY",w:false},
       {g:"14G31",vs:"G3 · 3rd Group B",date:"Sun Jun 7",t:"8:50 AM",loc:"NOVATO HS",    w:false}],
   H1:[{g:"14G20",vs:"H4 · 3rd Group D",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:true},
       {g:"14G26",vs:"H3 · 3rd Group A",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:true},
       {g:"14G30",vs:"H2 · 2nd Group B",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:true}],
-  H2:[{g:"14G19",vs:"H3 · 3rd Group A",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:true},
-      {g:"14G28",vs:"H4 · 3rd Group D",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:true},
+  H2:[{g:"14G19",vs:"H3 · 3rd Group A",date:"Sat Jun 6",t:"2:40 PM",loc:"NOVATO HS",    w:true},
+      {g:"14G28",vs:"H4 · 3rd Group D",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:true},
       {g:"14G30",vs:"H1 · 2nd Group C",date:"Sun Jun 7",t:"8:00 AM",loc:"MARIN ACADEMY",w:false}],
-  H3:[{g:"14G19",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"3:30 PM",loc:"MARIN ACADEMY",w:false},
+  H3:[{g:"14G19",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"2:40 PM",loc:"NOVATO HS",    w:false},
       {g:"14G26",vs:"H1 · 2nd Group C",date:"Sat Jun 6",t:"6:50 PM",loc:"NOVATO HS",    w:false},
       {g:"14G32",vs:"H4 · 3rd Group D",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:true}],
   H4:[{g:"14G20",vs:"H1 · 2nd Group C",date:"Sat Jun 6",t:"4:20 PM",loc:"NOVATO HS",    w:false},
-      {g:"14G28",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"7:40 PM",loc:"NOVATO HS",    w:false},
+      {g:"14G28",vs:"H2 · 2nd Group B",date:"Sat Jun 6",t:"6:50 PM",loc:"MARIN ACADEMY",w:false},
       {g:"14G32",vs:"H3 · 3rd Group A",date:"Sun Jun 7",t:"8:50 AM",loc:"MARIN ACADEMY",w:false}],
 };
 
